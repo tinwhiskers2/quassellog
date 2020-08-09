@@ -1,0 +1,63 @@
+.datepicker {
+  position: absolute;
+  /* -webkit-touch-callout: none; */
+  /* -webkit-user-select: none; */
+  /* -khtml-user-select: none; */
+  /* -moz-user-select: none; */
+  /* -ms-user-select: none; */
+  user-select: none;
+
+  width: 250px;
+  height: 250px;
+  border-radius: 8px;
+  background-color: white;
+  box-shadow: 0 0 16px -8px black;
+  border: 2px solid dodgerblue;
+  color: #404040;
+  font: 15px Tahoma;
+}
+
+/* ========= Head ======== */
+.datepicker .head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  height: 32px;
+}
+
+.datepicker .head span {
+  margin: 2px;
+  padding: 4px 8px;
+}
+
+.datepicker .head span:not(.disabled) {
+  cursor: pointer;
+}
+
+/* ======== Table ========= */
+.datepicker table {
+  width: 100%;
+  height: calc(100% - 32px);
+  font: 10px Tahoma;
+}
+
+.datepicker td:not(.disabled) {
+  cursor: pointer;
+  border-radius: 4px;
+  transition: background-color 0.1s, color 0.1s;
+}
+
+/* ======== Colors i guess ======== */
+.datepicker .disabled {
+  color: lightgray;
+}
+
+.datepicker .today {
+  color: dodgerblue;
+}
+
+.datepicker td:not(.disabled):hover {
+  background-color: dodgerblue;
+  color: white;
+  transition: background-color 0.1s, color 0.1s;
+}
