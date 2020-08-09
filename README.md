@@ -16,7 +16,7 @@ Requires PHP (PHP 7 is the only version tested).
 
 Installation:
 -------------
-Copy all files into a directory on your web server.
+Copy all files into a directory accesible to your web server.
 
 Edit index.php and change $sqlitedir (default is 'sqlite:/var/lib/quassel/quassel-storage.sqlite') to match your setup.
 
