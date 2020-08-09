@@ -14,9 +14,11 @@ Requires PHP (PHP 7 is the only version tested)
 
 Installation:
 -------------
-Copy all files into a directory on your web server
-Edit index.php and change $sqlitedir (default is 'sqlite:/var/lib/quassel/quassel-storage.sqlite') to match your setup
-You may get a better experience if you turn off buffered output on your web server and php for the directory you run this from
+Copy all files into a directory on your web server.
+
+Edit index.php and change $sqlitedir (default is 'sqlite:/var/lib/quassel/quassel-storage.sqlite') to match your setup.
+
+You may get a better experience if you turn off buffered output on your web server and php for the directory you run this from.
 Note: you may need to disable deflate or gzip on your web server to disable the buffered output.
 
 Log in using your quassle username and password
