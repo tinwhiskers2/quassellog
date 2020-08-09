@@ -23,6 +23,6 @@ Edit index.php and change $sqlitedir (default is 'sqlite:/var/lib/quassel/quasse
 You may get a better experience if you turn off buffered output on your web server and php for the directory you run this from.
 Note: you may need to disable deflate or gzip on your web server to disable the buffered output.
 
-Log in using your quassle username and password
+Log in using your quassel username and password
 
 See the screenshots
