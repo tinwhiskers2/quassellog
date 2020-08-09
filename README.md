@@ -1,6 +1,6 @@
 quassellog - a very simple quassel log viewer
 
-This is a php project to view log files on quassel server.
+This is a php project to view log files on a quassel server via a web browser.
 
 License:
 --------
