@@ -8,9 +8,11 @@ This source code is public domain. Do whatever you like with it
 
 Requirements:
 -------------
-This needs to be installed on the server running quasselcore
-Only SQLite databases are supported
-Requires PHP (PHP 7 is the only version tested)
+This needs to be installed on the server running quasselcore.
+
+Only SQLite databases are supported.
+
+Requires PHP (PHP 7 is the only version tested).
 
 Installation:
 -------------
