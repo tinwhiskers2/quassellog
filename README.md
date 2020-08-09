@@ -20,6 +20,8 @@ Copy all files into a directory accessible to a web server running on the quasse
 
 Edit index.php and change $sqlitedir (default is 'sqlite:/var/lib/quassel/quassel-storage.sqlite') to match your setup.
 
+Give permissions to your web server service account (probably by way of group membership) to read quassel-storage.sqlite.
+
 You may get a better experience if you turn off buffered output on your web server and php for the directory you run this from.
 Note: you may need to disable deflate or gzip on your web server for this directory to disable the buffered output.
 
