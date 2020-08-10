@@ -272,6 +272,9 @@ $chans = printAllChans();
 		</table>
 		<br>
 
+		<input type="checkbox" name="joins" id="joins">
+		<label for="joins">Include joins, parts etc.</label><br><br>
+
 		<input type="submit" value="Search">
 
 
@@ -438,6 +441,8 @@ function printResults() {
 	$startdatesql="";
 	$enddatesql="";
 
+	$joins=false;
+
 	if(isset($_REQUEST['nick'])) {
 		if(strlen($_REQUEST['nick'])) {
 			$sendersql=" sender LIKE :sender AND";
@@ -479,6 +484,9 @@ function printResults() {
 				$enddatesql=" time < ".$timestamp." AND";
 			}
 		}
+	}
+	if(isset($_REQUEST['joins'])) {
+		$joins=true;
 	}
 
 	foreach($_POST as $name => $value) {
@@ -525,8 +533,6 @@ function printResults() {
 			if($row['type'] == 32768) continue;  // netsplit
 			if($row['type'] == 65536) continue;  // netsplit
 
-			$date = date('Y-m-d H:i:s', $row['time'] / 1000);
-
 			$nick = $row['sender'];
 			$ident="";
 			if(strpos($nick,"!") == true) {
@@ -534,6 +540,58 @@ function printResults() {
 				$nick=$newnick;
 				$ident=$newident;
 			}
+
+			if($row['type'] != 1) {
+				if((!$joins)&&($row['type'] != "4")) continue;  // actions (4) are still allowed even if other things are skipped
+				switch ($row['type']) {
+					case null:
+					case "2":
+					$row['message'] = "<i>Notice ".$row['message']."</i>";
+					break;
+					case "4":
+					$row['message'] = "<i>".$nick." ".$row['message']."</i>";
+					break;
+					case "8":
+					$row['message'] = "<i>Nick ".$row['message']."</i>";
+					break;
+					case "16":
+					$row['message'] = "<i>Mode ".$row['message']."</i>";
+					break;
+					case "32":
+					$row['message'] = "<i>Joined ".$row['message']."</i>";
+					break;
+					case "64":
+					$row['message'] = "<i>Parted ".$row['message']."</i>";
+					break;
+					case "128":
+					break;
+					case "256":
+					$row['message'] = "<i>Kicked ".$row['message']."</i>";
+					break;
+					case "512":
+					$row['message'] = "<i>Killed ".$row['message']."</i>";
+					break;
+					case "1024":
+					$row['message'] = "<i>Server ".$row['message']."</i>";
+					break;
+					case "2048":
+					$row['message'] = "<i>Info ".$row['message']."</i>";
+					break;
+					case "4096":
+					$row['message'] = "<i>Error ".$row['message']."</i>";
+					break;
+					case "8192":
+					$row['message'] = "<i>Day changed to ".$row['message']."</i>";
+					break;
+					case "16384":
+					break;
+					default:
+					$row['message'] = $row['message']." (".$row['type'].")";
+					break;
+				}
+			}
+
+			$date = date('Y-m-d H:i:s', $row['time'] / 1000);
 ?>
 		<tr>
 		<td><?= $date ?></td><td><?= $nick ?></td><td><?= $row['message'] ?></td><td><?= $network ?></td><td><?= $channel ?></td>
