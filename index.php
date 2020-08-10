@@ -517,28 +517,28 @@ function printResults() {
 		$host=true;
 	}
 
+
+	global $sqlitedir;
+
+	try {
+		$dbh  = new PDO($sqlitedir);
+	} catch (Exception $e) {
+		echo 'Caught exception: ',  $e->getMessage(), "\n</body></html>";
+		exit(0);
+	}
+
+	$query = "SELECT type, flags, time, sender, message FROM backlog JOIN sender ON backlog.senderid = sender.senderid , buffer ON backlog.bufferid = buffer.bufferid ".
+	", network ON buffer.networkid = network.networkid , quasseluser ON buffer.userid = quasseluser.userid ".
+	"WHERE ".$filter1sql.$filter2sql.$filter3sql.$sendersql.$startdatesql.$enddatesql." username = :username AND networkname = :network AND buffername = :buffer";
+
+	$stmt = $dbh->prepare($query);
+	$stmt->bindParam(':username', $username);
+
 	foreach($_POST as $name => $value) {
 
 		if(strpos($name,"/") == false) {continue;}
 		list($network, $channel) = explode("/", $name);
 
-		global $sqlitedir;
-
-		try {
-			$dbh  = new PDO($sqlitedir);
-		} catch (Exception $e) {
-			echo 'Caught exception: ',  $e->getMessage(), "\n</body></html>";
-			exit(0);
-		}
-
-		$query = "SELECT type, flags, time, sender, message FROM backlog JOIN sender ON backlog.senderid = sender.senderid , buffer ON backlog.bufferid = buffer.bufferid ".
-		", network ON buffer.networkid = network.networkid , quasseluser ON buffer.userid = quasseluser.userid ".
-		"WHERE ".$filter1sql.$filter2sql.$filter3sql.$sendersql.$startdatesql.$enddatesql." username = :username AND networkname = :network AND buffername = :buffer";
-
-		//echo($query);
-		//exit(0);
-
-		$stmt = $dbh->prepare($query);
 		if(strlen($filter1)) {
 			$stmt->bindParam(':filter1', $filter1);
 		}
@@ -551,7 +551,6 @@ function printResults() {
 		if(strlen($sender)) {
 			$stmt->bindParam(':sender', $sender);
 		}
-		$stmt->bindParam(':username', $username);
 		$stmt->bindParam(':network', $network);
 		$stmt->bindParam(':buffer', $channel);
 		$stmt->execute();
@@ -563,10 +562,15 @@ function printResults() {
 
 			$nick = $row['sender'];
 			$ident="";
-			if((strpos($nick,"!") == true)&&(!$host)) {
+			if(strpos($nick,"!")) {
 				list($newnick, $newident) = explode("!", $nick);
 				$nick=$newnick;
 				$ident=$newident;
+			}
+
+			$nickout = $nick;
+			if($host) {
+				$nickout = $row['sender'];
 			}
 
 			if($row['type'] != 1) {
@@ -622,7 +626,7 @@ function printResults() {
 			$date = date('Y-m-d H:i:s', $row['time'] / 1000);
 ?>
 		<tr>
-		<td><?= $date ?></td><td><?= $nick ?></td><td><?= $row['message'] ?></td><td><?= $network ?></td><td><?= $channel ?></td>
+		<td><?= $date ?></td><td><?= $nickout ?></td><td><?= $row['message'] ?></td><td><?= $network ?></td><td><?= $channel ?></td>
 		</tr>
 <?php
 		}
