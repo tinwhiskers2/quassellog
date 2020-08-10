@@ -273,7 +273,9 @@ $chans = printAllChans();
 		<br>
 
 		<input type="checkbox" name="joins" id="joins">
-		<label for="joins">Include joins, parts etc.</label><br><br>
+		<label for="joins">Include joins, parts etc.</label><br>
+		<input type="checkbox" name="host" id="host">
+		<label for="host">Include ident/host</label><br><br>
 
 		<input type="submit" value="Search">
 
@@ -464,6 +466,7 @@ function printResults() {
 	$enddatesql="";
 
 	$joins=false;
+	$host=false;
 
 	if(isset($_REQUEST['nick'])) {
 		if(strlen($_REQUEST['nick'])) {
@@ -509,6 +512,9 @@ function printResults() {
 	}
 	if(isset($_REQUEST['joins'])) {
 		$joins=true;
+	}
+	if(isset($_REQUEST['host'])) {
+		$host=true;
 	}
 
 	foreach($_POST as $name => $value) {
@@ -557,7 +563,7 @@ function printResults() {
 
 			$nick = $row['sender'];
 			$ident="";
-			if(strpos($nick,"!") == true) {
+			if((strpos($nick,"!") == true)&&(!$host)) {
 				list($newnick, $newident) = explode("!", $nick);
 				$nick=$newnick;
 				$ident=$newident;
