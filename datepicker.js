@@ -316,8 +316,10 @@ var Datepicker = /** @class */ (function () {
             var host_rect = this.host.getBoundingClientRect();
             this.host.insertAdjacentElement("afterend", this.frame);
             var frame_rect = this.frame.getBoundingClientRect();
-            var x = host_rect.x + (host_rect.width - frame_rect.width) / 2;
-            var y = host_rect.y + host_rect.height + 16;
+//            var x = host_rect.x + (host_rect.width - frame_rect.width) / 2;
+            var x = host_rect.x  - frame_rect.width - 32; // + (host_rect.width - frame_rect.width) / 2;
+//            var y = host_rect.y + host_rect.height + 32;
+            var y = host_rect.y + (host_rect.height /2);
             this.frame.style.setProperty("top", y + "px");
             this.frame.style.setProperty("left", x + "px");
         }

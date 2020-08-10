@@ -237,7 +237,7 @@ $chans = printAllChans();
 		<tbody>
 		<tr>
 		<td>
-		Sender nick or ident or hostmask  must include: <input type="text" id="nick" name="nick" size="40"> 
+		Sender nick or ident or hostmask  must include: <input type="text" id="nick" name="nick" size="40">
 		</td>
 		</tr>
 		</tbody>
@@ -289,6 +289,25 @@ $chans = printAllChans();
 </form>
 
 <script>
+
+	document.onkeydown = function(evt) {
+		evt = evt || window.event;
+		if (evt.keyCode == 27) {
+			d.show();
+			d2.show();
+		}
+	};
+
+	document.onclick = function(e) {
+		//console.log (e.clientX, " ", e.clientY);
+		if(e.target.id != "startdate") {
+			d.show();
+		}
+		if(e.target.id != "enddate") {
+			d2.show();
+		}
+	};
+
 
 	function formatDateToString(date){
 		var dd = (date.getDate() < 10 ? '0' : '') + date.getDate();
