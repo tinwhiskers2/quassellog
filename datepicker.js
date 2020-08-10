@@ -81,21 +81,29 @@ var Datepicker = /** @class */ (function () {
     Datepicker.prototype.load = function (mode) {
         var _this = this;
         this.frame.innerHTML = "";
+
         // Head
         var head = document.createElement("div");
         this.frame.append(head);
         head.className = "head";
+	head.setAttribute("id", "picker");
         // Prev
+
         var prev = document.createElement("span");
+	prev.setAttribute("id", "picker");
+
         head.append(prev);
         prev.innerHTML = "<<";
         // Center
         var center = document.createElement("span");
+	center.setAttribute("id", "picker");
         head.append(center);
         // Next
         var next = document.createElement("span");
         head.append(next);
         next.innerHTML = ">>";
+	next.setAttribute("id", "picker");
+
         // Table
         var table = document.createElement("table");
         this.frame.append(table);
@@ -149,6 +157,7 @@ var Datepicker = /** @class */ (function () {
                     var day = new Date(first_day_in_month.getTime());
                     day.setDate(day.getDate() + index);
                     var td = document.createElement("td");
+		    td.setAttribute("id", "picker");
                     tr.append(td);
                     td.innerHTML = day.getDate().toString();
                     // If available
@@ -211,6 +220,8 @@ var Datepicker = /** @class */ (function () {
                     var index = y * 4 + x;
                     var day = new Date(_this.date.getFullYear(), index, 1);
                     var cell = document.createElement("td");
+		    cell.setAttribute("id", "picker");
+
                     row.append(cell);
                     cell.innerHTML = MONTHS_SHORT[index];
                     if ((_this.first_date
@@ -272,6 +283,8 @@ var Datepicker = /** @class */ (function () {
                         x;
                     var day = new Date(index, 0, 1);
                     var cell = document.createElement("td");
+		    cell.setAttribute("id", "picker");
+
                     row.append(cell);
                     cell.innerHTML = index.toString();
                     if ((_this.first_date != undefined

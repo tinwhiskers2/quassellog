@@ -299,7 +299,10 @@ $chans = printAllChans();
 	};
 
 	document.onclick = function(e) {
-		//console.log (e.clientX, " ", e.clientY);
+		//console.log (e.target.id);
+		if(e.target.id == "picker") {
+			return;
+		}
 		if(e.target.id != "startdate") {
 			d.show();
 		}
