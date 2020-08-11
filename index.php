@@ -1,13 +1,11 @@
-<html>
-<head>
-<link rel="stylesheet" href="quassellog.css">
-<link rel="stylesheet" href="datepicker.css">
-<script src="datepicker.js"></script>
-<title>Quassel Log Viewer</title>
-</head>
-<body>
-
 <?php
+$submitType="";
+if(isset($_REQUEST['submit'])) {
+	$submitType=$_REQUEST['submit'];
+}
+if($submitType != "Export") {
+	printHeader();
+}
 
 $sqlitedir = 'sqlite:/var/lib/quassel/quassel-storage.sqlite';
 
@@ -38,23 +36,24 @@ if($task == "filter") {
 	exit(0);
 
 } else if($task == "search") {
-	printResults();
+	if($_REQUEST['submit'] == "Export") {
+		printResults(true);
+	} else {
+		printResults(false);
+		echo("</body></html>");
+	}
 	exit(0);
-
 } else {
-	echo ("Stop fiddling!");
+	echo ("Stop fiddling!</body></html>");
 }
 
 
 
 exit(0);
 
-
 ///////////////////////
 function checkPassword($username,$password) {
 ///////////////////////
-
-
 	global $sqlitedir;
 
 	try {
@@ -119,7 +118,6 @@ function checkHashedPasswordSha2_512($plainPassword, $dbHashedPassword)
 ///////////////////////
 function printLogonScreen() {
 ///////////////////////
-
 ?>
 
 <form method="post" action="">
@@ -164,6 +162,8 @@ function printLogonScreen() {
 	</table>
 <input type="hidden" name="task" value="filter">
 </form>
+</body>
+</html>
 
 <?php
 
@@ -175,7 +175,7 @@ function printMainScreen() {
 global $password;
 global $username;
 ?>
-<form method="post" action="">
+<form method="post" onsubmit="return checksubmit()" action="">
 
 	<table class="layout" border="0" align="center" width="90%">
 	<tr><td width="80%"><b>Select Message Filters</b></td><td width="20%">Logged in as <?= $username ?></td></tr>
@@ -191,19 +191,11 @@ global $username;
 		</tr>
 		</thead>
 		<tbody>
-
-
 <?php
 
 $chans = printAllChans();
 
 ?>
-
-
-
-
-
-
 		</tbody>
 		</table>
 	</td>
@@ -277,12 +269,16 @@ $chans = printAllChans();
 		<input type="checkbox" name="host" id="host">
 		<label for="host">Include ident/host</label><br><br>
 
-		<input type="submit" value="Search">
-
-
+		<input type="submit" value="Search" name="submit"><br><br>
+<?php
+	if(extension_loaded('zip')) {
+?>
+		<input type="submit" value="Export" name="submit"><br>
+		Note: use Export (zip) in preference to Search for large result sets and test with a limited date range first.
+<?php
+	}
+?>
 	</td>
-
-
 	</tr>
 	</table>
 <input type="hidden" name="task" value="search">
@@ -327,8 +323,6 @@ $chans = printAllChans();
 		},
 	});
 
-	//document.getElementById('startdate').value = '';
-
 	const d2 = new Datepicker(document.getElementById("enddate"), {
 			format: (d) => {
 			return formatDateToString(d);
@@ -344,20 +338,26 @@ $chans = printAllChans();
 		}
 	}
 
+	function checksubmit() {
 
+		var startDate = document.getElementById("startdate").value;
+		var endDate = document.getElementById("enddate").value;
+		if((startDate.length==0) && (endDate.length==0)) {
+			var r = confirm("Searches with no date restrictions might take a long time, be overwhelmingly large and could time out. Are you sure you want to continue?");
+			if (!r) {return(false);}
+		}
+		return(true);
+	}
 </script>
-
-
+</body>
+</html>
 <?php
-
 }
 
 
 ///////////////////////
 function printAllChans () {
 ///////////////////////
-
-
 	global $sqlitedir;
 
 	try {
@@ -425,14 +425,37 @@ function printAllChans () {
 }
 
 ///////////////////////
-function printResults() {
+function printHeader() {
 ///////////////////////
-	global $username;
+?>
+<html>
+<head>
+<link rel="stylesheet" href="quassellog.css">
+<link rel="stylesheet" href="datepicker.css">
+<script src="datepicker.js"></script>
+<title>Quassel Log Viewer</title>
+</head>
+<body>
+<?php
+}
 
-	ob_implicit_flush();
+///////////////////////
+function printResults($export) {
+///////////////////////
+
+	global $username;
+	$tempdir="";
+	$tempzip="";
+	if($export) {
+		$tempzip = $tempfile=tempnam(sys_get_temp_dir(),'');
+		$tempdir = $tempfile=tempnam(sys_get_temp_dir(),'');
+		if (file_exists($tempdir)) { unlink($tempdir); }
+		mkdir($tempdir);
+	} else {
+		ob_implicit_flush();
 
 ?>
-		<table class="btable" width="120%">
+		<table class="btable" width="100%">
 		<thead>
 		<tr>
 		<th>Time</th>
@@ -444,13 +467,7 @@ function printResults() {
 		</thead>
 		<tbody>
 <?php
-
-
-
-//	foreach($_POST as $name => $value) {
-//		echo($name."<br>");
-//	}
-//	exit(0);
+	}
 
 	$filter1="";
 	$filter2="";
@@ -460,7 +477,7 @@ function printResults() {
 	$filter3sql="";
 
 	$sender="";
-	$senderswl="";
+	$sendersql="";
 
 	$startdatesql="";
 	$enddatesql="";
@@ -517,7 +534,6 @@ function printResults() {
 		$host=true;
 	}
 
-
 	global $sqlitedir;
 
 	try {
@@ -534,10 +550,21 @@ function printResults() {
 	$stmt = $dbh->prepare($query);
 	$stmt->bindParam(':username', $username);
 
+	$flist=[];
+
+	$fh=null;
+
 	foreach($_POST as $name => $value) {
+
 
 		if(strpos($name,"/") == false) {continue;}
 		list($network, $channel) = explode("/", $name);
+
+		if($export) {
+			$fpath = $tempdir . "/" . $network . "-" . $channel . ".txt";
+			array_push($flist,$fpath);
+			$fh = fopen($fpath, "w");
+		}
 
 		if(strlen($filter1)) {
 			$stmt->bindParam(':filter1', $filter1);
@@ -575,45 +602,52 @@ function printResults() {
 
 			if($row['type'] != 1) {
 				if((!$joins)&&($row['type'] != "4")) continue;  // actions (4) are still allowed even if other things are skipped
+				$ion="<i><font color = \"#00bd14\">";
+				$ioff="</font></i>";
+				if($export) {
+					$ion="";
+					$ioff="";
+				}
+
 				switch ($row['type']) {
 					case null:
 					case "2":
-					$row['message'] = "<i>Notice ".$row['message']."</i>";
+					$row['message'] = $ion."Notice ".$row['message'].$ioff;
 					break;
 					case "4":
-					$row['message'] = "<i>".$nick." ".$row['message']."</i>";
+					$row['message'] = $ion.$nick." ".$row['message'].$ioff;
 					break;
 					case "8":
-					$row['message'] = "<i>Nick ".$row['message']."</i>";
+					$row['message'] = $ion."Nick ".$row['message'].$ioff;
 					break;
 					case "16":
-					$row['message'] = "<i>Mode ".$row['message']."</i>";
+					$row['message'] = $ion."Mode ".$row['message'].$ioff;
 					break;
 					case "32":
-					$row['message'] = "<i>Joined ".$row['message']."</i>";
+					$row['message'] = $ion."Joined ".$row['message'].$ioff;
 					break;
 					case "64":
-					$row['message'] = "<i>Parted ".$row['message']."</i>";
+					$row['message'] = $ion."Parted ".$row['message'].$ioff;
 					break;
 					case "128":
 					break;
 					case "256":
-					$row['message'] = "<i>Kicked ".$row['message']."</i>";
+					$row['message'] = $ion."Kicked ".$row['message'].$ioff;
 					break;
 					case "512":
-					$row['message'] = "<i>Killed ".$row['message']."</i>";
+					$row['message'] = $ion."Killed ".$row['message'].$ioff;
 					break;
 					case "1024":
-					$row['message'] = "<i>Server ".$row['message']."</i>";
+					$row['message'] = $ion."Server ".$row['message'].$ioff;
 					break;
 					case "2048":
-					$row['message'] = "<i>Info ".$row['message']."</i>";
+					$row['message'] = $ion."Info ".$row['message'].$ioff;
 					break;
 					case "4096":
-					$row['message'] = "<i>Error ".$row['message']."</i>";
+					$row['message'] = $ion."Error ".$row['message'].$ioff;
 					break;
 					case "8192":
-					$row['message'] = "<i>Day changed to ".$row['message']."</i>";
+					$row['message'] = $ion."Day changed to ".$row['message'].$ioff;
 					break;
 					case "16384":
 					break;
@@ -624,20 +658,50 @@ function printResults() {
 			}
 
 			$date = date('Y-m-d H:i:s', $row['time'] / 1000);
+			if($export) {
+				fwrite($fh, $date."\t".$nickout."\t".$row['message']."\n");
+			} else {
 ?>
 		<tr>
 		<td><?= $date ?></td><td><?= $nickout ?></td><td><?= $row['message'] ?></td><td><?= $network ?></td><td><?= $channel ?></td>
 		</tr>
 <?php
+			}
 		}
 	}
+	if($export) {
+		fclose($fh);
+
+		// create ZIP
+		$zip = new ZipArchive();
+
+		if ($zip->open($tempzip, (ZipArchive::CREATE | ZipArchive::OVERWRITE)) == true) {
+			foreach($flist as $fpath) {
+
+				$zip->addFile($fpath, basename($fpath));
+			}
+			$zip->close();
+			$zipName = "quassel-".gmdate('Ymd-his').".zip";
+			header("Content-Type: application/zip");
+			header("Content-Disposition: attachment; filename=\"".$zipName."\"");
+			header("Content-Length: " . filesize($tempzip));
+			readfile($tempzip);
+		} else {
+			printHeader();
+			echo("Failed to create zip archive\n</body></html>");
+		}
+		// cleanup
+		foreach($flist as $fpath) {
+			unlink($fpath);
+		}
+		unlink($tempzip);
+		rmdir($tempdir);
+	} else {
 ?>
 		</tbody>
 		</table>
 <?php
-
-	$dbh = null; 
+	}
+	$dbh = null;
 }
 ?>
-</body>
-</html>
