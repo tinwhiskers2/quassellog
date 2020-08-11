@@ -13,6 +13,7 @@ This needs to be installed on the server running quasselcore.
 Only SQLite databases are supported.
 
 Requires PHP (PHP 7 is the only version tested).
+
 PHP zip (zipArchive) support is required for the Export option to be available (e.g. on Ubuntu, apt-get install php7.0-zip)
 
 Installation:
